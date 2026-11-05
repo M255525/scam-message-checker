@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>詐騙訊息紅綠燈</title>
+<meta name="description" content="收到可疑的簡訊、LINE 訊息，貼進來或用截圖，馬上用紅黃綠燈告訴您危不危險，一鍵撥打 165。訊息不會上傳。">
+<meta name="theme-color" content="#262A2E">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="詐騙紅綠燈">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Iansui&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pole:#262A2E;       /* 號誌桿 */
+  --pole-2:#1A1D20;
+  --hood:#3A4046;
+  --road:#E9E6DD;       /* 路面淺色 */
+  --paper:#FFFDF8;
+  --ink:#1C1F22;
+  --sub:#4D5359;
+  --line:#BDB7A8;
+  --red:#C8231B;  --red-on:#FF4A3D;
+  --amber:#B86E00; --amber-on:#FFB21E;
+  --green:#007A55; --green-on:#22D39A;
+  --off:#151719;
+  --blue:#0B4F9C;
+  --mq:0px;
+  color-scheme:light;
+}
+html{font-size:20px;-webkit-text-size-adjust:100%}
+html[data-fs="xl"]{font-size:24px}
+html[data-hc="1"]{--road:#fff;--paper:#fff;--ink:#000;--sub:#111;--line:#000}
+*{box-sizing:border-box}
+body{margin:0;background:var(--road);color:var(--ink);font-family:'Noto Sans TC','Microsoft JhengHei','PingFang TC',sans-serif;font-weight:500;line-height:1.55;padding-top:var(--mq)}
+body.has-marquee{--mq:34px}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--blue);font-weight:700}
+:focus-visible{outline:3px solid #0B57D0;outline-offset:2px}
+h1,h2,h3{font-family:'Iansui','Noto Sans TC',sans-serif;font-weight:400;line-height:1.3;margin:0}
+
+#marqueeBar{position:fixed;top:0;left:0;right:0;height:34px;background:var(--pole-2);z-index:60;overflow:hidden;display:none;align-items:center;border-bottom:3px solid var(--amber-on)}
+#marqueeBar.show{display:flex}
+#marqueeTrack{display:inline-block;white-space:nowrap;padding-left:100%;font-size:16px;font-weight:700;color:#fff;animation:marquee-scroll 30s linear infinite}
+#marqueeBar:hover #marqueeTrack{animation-play-state:paused}
+@keyframes marquee-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+#app{max-width:30rem;min-height:calc(100dvh - var(--mq));margin:0 auto;padding:0 0 calc(.8rem + env(safe-area-inset-bottom));display:flex;flex-direction:column}
+.top{display:flex;align-items:center;gap:.5rem;background:var(--pole);color:#fff;padding:.45rem .8rem;min-height:3rem}
+.top h1{flex:1 1 0;font-size:1.25rem;letter-spacing:.04em}
+.top .gear,.top .back{background:none;border:0;color:#fff;font-size:1.3rem;min-width:2.6rem;min-height:2.6rem;border-radius:.5rem;font-weight:700}
+.top .back{font-size:.95rem}
+.body{padding:.7rem .8rem;display:flex;flex-direction:column;gap:.6rem;flex:1 1 auto}
+
+/* 號誌燈箱 */
+.signal{display:flex;gap:.55rem;justify-content:center;align-items:center;background:var(--pole);padding:.55rem .9rem;border-radius:1.6rem;box-shadow:inset 0 -.25rem 0 var(--pole-2),0 .25rem 0 rgba(0,0,0,.12);margin:0 auto;position:relative}
+.signal::after{content:'';position:absolute;left:50%;bottom:-.9rem;width:.7rem;height:.9rem;background:var(--pole);transform:translateX(-50%);z-index:-1}
+.lamp{width:3.3rem;height:3.3rem;border-radius:50%;background:var(--off);position:relative;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.5rem;color:transparent;box-shadow:inset 0 .25rem .4rem rgba(0,0,0,.6)}
+.lamp::before{content:'';position:absolute;inset:-.28rem -.2rem auto;height:1.2rem;border-radius:1.6rem 1.6rem 0 0;background:var(--hood);z-index:0;clip-path:inset(0 0 40% 0)}
+.lamp span{position:relative;z-index:1}
+.lamp.r.on{background:radial-gradient(circle at 40% 38%,#FFB3AB,var(--red-on) 45%,#B5150D);color:#fff;box-shadow:0 0 1.1rem var(--red-on)}
+.lamp.y.on{background:radial-gradient(circle at 40% 38%,#FFE9B0,var(--amber-on) 45%,#C27800);color:#3A2400;box-shadow:0 0 1.1rem var(--amber-on)}
+.lamp.g.on{background:radial-gradient(circle at 40% 38%,#C2FFE9,var(--green-on) 45%,#008F62);color:#00301F;box-shadow:0 0 1.1rem var(--green-on)}
+.signal.big .lamp{width:4.4rem;height:4.4rem;font-size:2rem}
+.signal.idle .lamp{animation:idle 3.6s infinite}
+.signal.idle .lamp.y{animation-delay:1.2s}.signal.idle .lamp.g{animation-delay:2.4s}
+@keyframes idle{0%,30%{filter:brightness(1)}10%{filter:brightness(1.9)}}
+.hint{text-align:center;color:var(--sub);font-size:.88rem;margin:.6rem 0 0}
+
+.msg{display:block;width:100%;min-height:9.5rem;resize:vertical;padding:.6rem .7rem;border:3px solid var(--pole);border-radius:.8rem;background:var(--paper);font-size:1.05rem;line-height:1.55}
+.msg::placeholder{color:#7A7F84}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+.btn{display:flex;align-items:center;justify-content:center;gap:.4rem;width:100%;min-height:3.3rem;padding:.4rem .8rem;border:0;border-radius:.8rem;background:var(--pole);color:#fff;font-weight:900;font-size:1.1rem;text-decoration:none;box-shadow:0 .22rem 0 #000;text-align:center;line-height:1.25}
+.btn:active{transform:translateY(.15rem);box-shadow:0 .07rem 0 #000}
+.btn.alt{background:var(--paper);color:var(--ink);box-shadow:0 0 0 2px var(--pole) inset,0 .22rem 0 var(--pole)}
+.btn.go{min-height:4rem;font-size:1.35rem;background:var(--blue);box-shadow:0 .25rem 0 #062C58;font-family:'Iansui','Noto Sans TC',sans-serif;font-weight:400;letter-spacing:.1em}
+.btn.call{background:var(--red);box-shadow:0 .22rem 0 #7A100A}
+.btn.line{background:#06A447;box-shadow:0 .22rem 0 #046A2E}
+.btn[disabled]{opacity:.55}
+.stack{display:flex;flex-direction:column;gap:.5rem;margin-top:.4rem}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem}
+.chip{border:2px solid var(--line);background:var(--paper);border-radius:999px;padding:.25rem .8rem;min-height:2.4rem;font-size:.88rem;font-weight:700}
+.small{font-size:.84rem;color:var(--sub)}
+.foot{display:flex;flex-wrap:wrap;justify-content:center;gap:.3rem 1rem;padding:.6rem .8rem 0;font-size:.88rem}
+.foot a,.link{background:none;border:0;color:var(--blue);font-weight:700;text-decoration:underline;padding:.3rem .1rem;min-height:2.4rem;display:inline-flex;align-items:center}
+.ocr{background:var(--paper);border-radius:.8rem;box-shadow:0 0 0 2px var(--line);padding:.6rem .7rem;font-weight:700}
+.bar{height:.6rem;border-radius:.3rem;background:#DDD8CC;overflow:hidden;margin-top:.4rem}
+.bar i{display:block;height:100%;width:0;background:var(--blue);transition:width .2s}
+
+/* 結果 */
+.verdict{border-radius:1rem;padding:.8rem .9rem;color:#fff;text-align:center}
+.verdict h2{font-size:1.45rem;letter-spacing:.04em}
+.verdict p{margin:.25rem 0 0;font-weight:700;font-size:1rem}
+.verdict.red{background:var(--red)}
+.verdict.yellow{background:#FFC24A;color:#2E1D00}
+.verdict.green{background:var(--green)}
+.card{background:var(--paper);border-radius:.9rem;box-shadow:0 0 0 2px var(--line);padding:.6rem .8rem}
+.card h3{font-size:1.1rem;margin-bottom:.25rem}
+.card ul,.card ol{margin:.2rem 0 0;padding-left:1.25em}
+.card li{margin:.3rem 0}
+.quote{font-size:.84rem;color:var(--sub);max-height:5.2em;overflow:auto;white-space:pre-wrap;word-break:break-all;border-left:4px solid var(--line);padding-left:.5rem;margin-top:.3rem}
+.url{word-break:break-all;font-family:ui-monospace,Consolas,monospace;font-size:.84rem;background:#F1EEE6;border-radius:.3rem;padding:0 .25rem}
+.tag{display:inline-block;background:var(--pole);color:#fff;border-radius:.4rem;padding:0 .45rem;font-size:.84rem;margin-right:.3rem}
+
+/* 學一學 */
+.learn{display:flex;flex-direction:column;gap:.55rem}
+.learn details{background:var(--paper);border-radius:.9rem;box-shadow:0 0 0 2px var(--line)}
+.learn summary{list-style:none;cursor:pointer;padding:.6rem .8rem;font-weight:900;display:flex;gap:.5rem;align-items:center;min-height:3.2rem}
+.learn summary::-webkit-details-marker{display:none}
+.learn summary::after{content:'▸';margin-left:auto;transition:transform .2s}
+.learn details[open] summary::after{transform:rotate(90deg)}
+.learn .lb{padding:0 .8rem .7rem}
+.learn .rem{background:#FFF1C9;border-radius:.5rem;padding:.3rem .5rem;font-weight:900;margin-top:.4rem}
+
+/* 對話框 */
+#modal{position:fixed;inset:0;background:rgba(20,22,24,.6);z-index:80;display:none;align-items:flex-end;justify-content:center}
+#modal.show{display:flex}
+#modalBox{background:var(--road);width:100%;max-width:30rem;max-height:92dvh;overflow:auto;border-radius:1.1rem 1.1rem 0 0;padding:.9rem .9rem calc(1rem + env(safe-area-inset-bottom))}
+#modalBox h2{font-size:1.4rem;margin-bottom:.4rem}
+#modalBox ul{padding-left:1.2em}
+#modalBox li{margin:.35rem 0}
+.sticky{position:sticky;bottom:-1rem;background:var(--road);padding:.5rem 0 .2rem}
+.fld{display:block;margin-top:.45rem;font-weight:700;font-size:.92rem}
+.fld input{display:block;width:100%;min-height:2.8rem;margin-top:.1rem;padding:.3rem .5rem;border:2px solid var(--line);border-radius:.55rem;background:#fff;font-weight:500;font-size:1.05rem}
+.set-sec{border-radius:.6rem;margin-bottom:.45rem;background:var(--paper);box-shadow:0 0 0 2px var(--line)}
+.set-sec>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:.5rem;padding:.55rem .7rem;font-weight:700;min-height:3rem}
+.set-sec>summary::-webkit-details-marker{display:none}
+.set-sec>summary::after{content:'▸';flex:none;transition:transform .2s}
+.set-sec[open]>summary::after{transform:rotate(90deg)}
+.set-sec .sst{flex:1 1 0;min-width:0}
+.set-sec .ssv{font-weight:500;font-size:.78rem;color:var(--sub);text-align:right}
+.set-body{padding:0 .7rem .7rem}
+.toast{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);background:var(--ink);color:#fff;padding:.5rem 1rem;border-radius:.7rem;z-index:90;font-weight:700;max-width:calc(100vw - 2rem);display:flex;gap:.8rem;align-items:center}
+.toast button{background:#fff;color:var(--ink);border:0;border-radius:.4rem;padding:.15rem .6rem;font-weight:700;min-height:2.2rem}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}#marqueeTrack{animation:marquee-scroll 90s linear infinite!important}}
+</style>
+</head>
+<body>
+<div id="marqueeBar"><div id="marqueeTrack"></div></div>
+<main id="app"></main>
+<div id="modal" role="dialog" aria-modal="true"><div id="modalBox"></div></div>
+<input type="file" id="shotFile" accept="image/*" hidden>
+<noscript>這個工具需要開啟 JavaScript 才能使用。</noscript>
+<script src="engine.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "name": "詐騙訊息紅綠燈",
+  "short_name": "詐騙紅綠燈",
+  "description": "收到可疑的簡訊、LINE 訊息，貼進來或用截圖，用紅黃綠燈告訴您危不危險，一鍵撥打 165",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#262A2E",
+  "theme_color": "#262A2E",
+  "lang": "zh-TW",
+  "share_target": {
+    "action": "./index.html",
+    "method": "GET",
+    "params": { "title": "title", "text": "text", "url": "url" }
+  },
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
