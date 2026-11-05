@@ -83,7 +83,9 @@ function viewResult(){
     signal(L.lamp, true) +
     '<div class="verdict ' + r.level + '" role="status"><h2>' + L.title + '</h2><p>' + L.sub + '</p></div>';
   if(r.types.length && r.level !== 'green') h += '<p style="margin:0;text-align:center"><span class="small">看起來像：</span>' + r.types.slice(0, 2).map(function(t){ return '<span class="tag">' + esc(t) + '</span>'; }).join('') + '</p>';
-  h += '<div class="stack" style="margin:0">' + callBtns() + '<button class="btn line" data-act="share">💬 傳給家人問問</button></div>';
+  h += '<div class="stack" style="margin:0">' + callBtns() + '<a class="btn line" href="' + esc(lineHref()) + '" target="_blank" rel="noopener">💬 用 LINE 傳給家人問問</a>' +
+    '<button class="btn alt" data-act="share">📤 用其他方式傳送</button></div>' +
+    '<p class="small" style="margin:0">按 LINE 後選要傳的家人或群組就好，訊息裡的連結會改成不能點。</p>';
   if(why.length) h += '<div class="card"><h3>為什麼這樣判斷</h3><ul>' + why.slice(0, 6).map(function(x){ return '<li>' + esc(x.say) + '</li>'; }).join('') + '</ul></div>';
   h += '<div class="card"><h3>現在該怎麼做</h3><ol>' + DO[r.level].map(function(x){ return '<li>' + x + '</li>'; }).join('') + '</ol></div>';
   if(r.urls.length) h += '<div class="card"><h3>訊息裡的連結</h3><ul>' + r.urls.slice(0, 4).map(function(u){ return '<li><span class="url">' + esc(u.host) + '</span>' + (u.isGov && !u.flags.length ? '　是 gov.tw 政府網址' : '　<b style="color:var(--red)">先不要點</b>') + '</li>'; }).join('') + '</ul></div>';
@@ -161,12 +163,19 @@ function doOcr(f){
 /* ---------- 分享、朗讀 ---------- */
 function shareText(){
   var L = LEVEL[last.r.level];
-  return '我收到這則訊息，「詐騙訊息紅綠燈」說：' + L.title + '。你幫我看看是真的假的？\n\n「' + last.text.slice(0, 600) + (last.text.length > 600 ? '…' : '') + '」\n\n' + SITE;
+  return '我收到這則訊息，「詐騙訊息紅綠燈」說：' + L.title + '。你幫我看看是真的假的？\n\n「' + defang(last.text.slice(0, 500)) + (last.text.length > 500 ? '…' : '') + '」\n（訊息裡的連結已改成不能點，避免誤點）\n\n' + SITE;
 }
+// 把可疑連結改成點不開的寫法（hxxps、[.]），家人在 LINE 裡才不會誤點
+function defang(s){
+  var t = String(s);
+  SMC.findUrls(t).forEach(function(u){ t = t.split(u.url).join(u.url.replace(/^http/i, 'hxxp').replace(/\./g, '[.]')); });
+  return t;
+}
+function lineHref(){ return 'https://line.me/R/share?text=' + encodeURIComponent(shareText()); }
 function share(){
   var t = shareText();
   if(navigator.share) return navigator.share({text:t}).catch(function(){});
-  window.open('https://line.me/R/share?text=' + encodeURIComponent(t), '_blank', 'noopener');
+  if(navigator.clipboard) navigator.clipboard.writeText(t).then(function(){ toast('已複製，請貼到要傳的地方'); }).catch(function(){ toast('這支手機不支援，請改用 LINE 傳'); });
 }
 function speak(){
   if(!('speechSynthesis' in window)){ toast('這支手機不支援朗讀'); return; }

@@ -1,5 +1,5 @@
 // 加入主畫面用。network-first＋同源快取備援，不快取跨網域請求（字型、文字辨識資料由瀏覽器自己快取）。
-const CACHE_NAME = 'scam-message-checker-shell-v1';
+const CACHE_NAME = 'scam-message-checker-shell-v2';
 const SHELL_FILES = [
   './',
   './index.html',

@@ -21,7 +21,7 @@
 ## 架構
 - 路由 `#home`／`#result`／`#learn`。`#result` 沒有 `last` 時回首頁。
 - PWA `share_target`（GET title/text/url）：Android 從 LINE「分享」進來會直接判讀，`readShared()` 讀完清掉網址。
-- 家人電話存 `cfg.famTel`，結果頁出現「打給家人」。分享用 `navigator.share`，沒有就開 LINE 分享網址。
+- 家人電話存 `cfg.famTel`，結果頁出現「打給家人」。傳給家人兩顆鍵：「用 LINE 傳」是 `<a href=line.me/R/share?text=>`（`lineHref()`，選聯絡人／群組）；「其他方式」用 `navigator.share`，不支援就複製。分享內容經 `defang()` 把連結改成 hxxps／[.]，避免家人誤點，不要拿掉。
 - 朗讀用 speechSynthesis（zh-TW）。儲存鍵前綴 `smc.`。測試掛鉤 `window._smc`。
 
 ## 標準配備
